@@ -5,9 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <script src="jquery-3.4.1.js"></script>
-    <link href="bootstrap.min.css" rel="stylesheet">
-    <script src="echarts.min.js"></script>
+    <script src="js/jquery-3.4.1.js"></script>
+    <script src="js/echarts.min.js"></script>
+    <script src="js/global.js"></script>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/global.css">
 </head>
 
 <body>
@@ -21,7 +23,14 @@
                 <div class="description">
                     <span class="tip">请输入学术家族树</span>
                     <button class="run btn btn-primary btn-sm" onclick="analyse()">生成</button>
-                    
+                    <button class="run btn btn-primary btn-sm" onclick="clears()">清空</button>
+
+                    <label for="fileinp">
+                        <input type="button" id="btn" value="上传文件" class="run btn btn-primary btn-sm" onclick="upload()">
+                        <span id="text" class="tip">请上传txt文件</span>
+                        <input type="file" id="fileinp" accept=".txt" onchange="fileUpload()">
+                    </label>
+
                 </div>
                 <textarea cols="30" rows="25" class="input-area form-control"></textarea>
             </div>
@@ -33,193 +42,5 @@
     </div>
 </body>
 
-
-<style>
-    * {
-        margin: 0;
-        padding: 0;
-        /* border: 1px solid #66ccff */
-    }
-
-    body {
-        background-color: rgb(243, 243, 243);
-    }
-
-    .clearfix::before,
-    .clearfix::after {
-        content: '';
-        display: table;
-        clear: both;
-    }
-
-    .main {
-        height: 43vw;
-        margin-top: 10px;
-        margin-left: 15px;
-    }
-
-    .text-container {
-        float: left;
-        height: 100%;
-        width: 35%;
-        /* margin-bottom: 20px; */
-    }
-
-    .graph-wrapper {
-        float: right;
-        height: 100%;
-        overflow-y: scroll;
-        width: 55%;
-
-    }
-
-    .input-area {
-        height: 100%;
-        overflow-y: scroll;
-        width: 100%;
-    }
-
-    .header {
-        /* border-bottom: 1px solid #333; */
-        padding: 2px 2px;
-        box-shadow: 0 5px 5px #999;
-        background-color: #373d41;
-        height: 60px;
-        align-items: center;
-        padding-left: 2%;
-        color: #fff;
-        font-size: 20px;
-        display: flex;
-        justify-content: space-between;
-        /* justify-content: space-between; */
-    }
-
-    .description {
-        margin-bottom: 10px;
-    }
-
-    .run {
-        margin-left: 15px;
-    }
-
-
-    .tip {
-        position: relative;
-        top: 5px;
-    }
-</style>
-<script>
-    function analyse() {
-        try {
-            $(".graph-wrapper").empty()
-            // throw new Error('error');
-            var text = $(".input-area").val();
-            var trees = text.split('\n\n\n');
-            console.log(trees.length)
-            trees.forEach((treeText) => {
-                let lines = treeText.split('\n');
-                let data = new Object();
-                let map = new Map();
-                data.name = lines[0];
-                if (lines[0].slice(0, 2) !== '导师') {
-                    throw new Error('ERROR: 导师行不正确,请注意每组数据之间有两行空行');
-                }
-                data.children = new Array();
-                console.log(lines.length);
-                for (let i = 1; i < lines.length; i++) {
-                    if (lines[i] === '') continue;
-                    if (!isNaN(lines[i].slice(0, 4))) {
-                        var children = new Object();
-                        children.name = lines[i].split('：')[0];
-                        children.children = new Array();
-                        lines[i].split('：')[1].split('、').forEach(item => {
-                            var t = new Object();
-                            t.name = item;
-                            t.value = '暂无';
-                            children.children.push(t);
-                            map.set(item, t);
-                        })
-                        data.children.push(children);
-                    } else {
-                        let [name, skill] = lines[i].split('：')
-                        if (!skill) {
-                            throw new Error('ERROR: 技能轨迹输入不正确');
-                        }
-                        if (!map.get(name)) {
-                            throw new Error("学生 " + name + "不存在")
-                        }
-                        map.get(name).value = skill;
-                    }
-                }
-                // console.log(data);
-                const domText = '<div class="graph" style="width: 100%;height:350px;"></div>';
-                $(".graph-wrapper").append(domText);
-                var texs = jQuery.parseJSON(JSON.stringify(data));
-
-                console.log(texs);
-                let graphlist = document.getElementsByClassName("graph");
-                let graphDom = graphlist[graphlist.length - 1];
-                var myChart = echarts.init(graphDom);
-                // this.chartssize(document.getElementById(chartPid),myChartId);
-                myChart.clear();
-                myChart.setOption(option = {
-                    tooltip: {
-                        trigger: 'item',
-                        triggerOn: 'mousemove',
-                        formatter: (item) => {
-                            return item.value;
-                        }
-                    },
-                    toolbox: {
-                        show: true,
-                        feature: {
-                            saveAsImage: {}
-                        }
-                    },
-                    series: [{
-                        type: 'tree',
-
-                        data: [texs],
-
-                        // top: '1%',
-                        // left: '7%',
-                        // bottom: '1%',
-                        // right: '5%',
-
-                        symbolSize: 8,
-
-                        label: {
-                            position: 'left',
-                            verticalAlign: 'middle',
-                            align: 'right',
-                            fontSize: 12
-                        },
-
-                        leaves: {
-                            label: {
-                                position: 'right',
-                                verticalAlign: 'middle',
-                                align: 'left'
-                            }
-                        },
-
-                        expandAndCollapse: true,
-                        animationDuration: 550,
-                        animationDurationUpdate: 750
-                    }]
-                });
-                window.addEventListener('resize', function () {
-                    myChart.resize()
-                });
-            })
-        } catch (error) {
-            const errorDom = '<div class="graph" style="width: 100%;height:350px;margin-top: 20px;color: red">' + error
-                .message + '</div>';
-            $(".graph-wrapper").append(errorDom);
-            return;
-        }
-
-    }
-</script>
 
 </html>
