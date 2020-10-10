@@ -3,12 +3,12 @@ function analyse() {
         $(".graph-wrapper").empty()
         // throw new Error('error');
         let text = $(".input-area").val();
-        if(text === '')return;
+        if (text === '') return;
         text = text.trim();
         let trees = text.split('\n\n\n');
         console.log(trees.length)
         trees.forEach((treeText) => {
-            
+
             let texs = parse(treeText);
             console.log(texs);
             let graphlist = document.getElementsByClassName("graph");
@@ -76,7 +76,7 @@ function analyse() {
 
 }
 
-function parse(treeText){
+function parse(treeText) {
     let lines = treeText.split('\n');
     let data = new Object();
     let map = new Map();
@@ -91,8 +91,8 @@ function parse(treeText){
         if (!isNaN(lines[i].slice(0, 4))) {
             var children = new Object();
             console.log(lines[i].search('级博士生|级硕士生|级本科生'))
-            if(lines[i].split('：').length <= 1 ||(lines[i].search('级博士生|级硕士生|级本科生'))==-1){
-                    throw new Error('ERROR: 学生信息解析不正确');
+            if (lines[i].split('：').length <= 1 || (lines[i].search('级博士生|级硕士生|级本科生')) == -1) {
+                throw new Error('ERROR: 学生信息解析不正确');
             }
             children.name = lines[i].split('：')[0];
             children.children = new Array();
@@ -115,13 +115,12 @@ function parse(treeText){
             }
             map.get(name).value = skill;
         }
-        
+
     }
     // console.log(data);
     const domText = '<div class="graph" style="width: 100%;height:350px;"></div>';
     $(".graph-wrapper").append(domText);
-    let texs = jQuery.parseJSON(JSON.stringify(data));
-    return texs;
+    return data;
 }
 
 
