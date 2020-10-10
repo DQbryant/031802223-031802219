@@ -2,8 +2,8 @@ function analyse() {
     try {
         $(".graph-wrapper").empty()
         // throw new Error('error');
-        var text = $(".input-area").val();
-        var trees = text.split('\n\n\n');
+        let text = $(".input-area").val();
+        let trees = text.split('\n\n\n');
         console.log(trees.length)
         trees.forEach((treeText) => {
             let lines = treeText.split('\n');
@@ -43,7 +43,7 @@ function analyse() {
             // console.log(data);
             const domText = '<div class="graph" style="width: 100%;height:350px;"></div>';
             $(".graph-wrapper").append(domText);
-            var texs = jQuery.parseJSON(JSON.stringify(data));
+            let texs = jQuery.parseJSON(JSON.stringify(data));
 
             console.log(texs);
             let graphlist = document.getElementsByClassName("graph");
@@ -102,10 +102,34 @@ function analyse() {
             });
         })
     } catch (error) {
-        const errorDom = '<div class="graph" style="width: 100%;height:350px;margin-top: 20px;color: red">' + error
+        const errorDom = '<div class="graph" style="width: 100%;height:350px;margin-top: 20px;color: red">' +
+            error
             .message + '</div>';
         $(".graph-wrapper").append(errorDom);
         return;
     }
 
+}
+
+function fileUpload() {
+    let file = document.getElementById('fileinp').files[0];
+    let reader = new FileReader();
+    reader.readAsText(file, 'utf-8');
+    console.log(reader.result);
+    reader.onload = function () {
+        // document.getElementById('result').innerHTML = reader.result;
+        $(".input-area").val(reader.result);
+        analyse();
+    }
+}
+
+function clears() {
+    $(".graph-wrapper").empty();
+    $(".input-area").val('');
+    $('#fileinp').val('');
+
+}
+
+function upload() {
+    $('#fileinp').click();
 }
