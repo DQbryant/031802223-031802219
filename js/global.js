@@ -3,48 +3,13 @@ function analyse() {
         $(".graph-wrapper").empty()
         // throw new Error('error');
         let text = $(".input-area").val();
+        if(text === '')return;
+        text = text.trim();
         let trees = text.split('\n\n\n');
         console.log(trees.length)
         trees.forEach((treeText) => {
-            let lines = treeText.split('\n');
-            let data = new Object();
-            let map = new Map();
-            data.name = lines[0];
-            if (lines[0].slice(0, 2) !== '导师') {
-                throw new Error('ERROR: 导师行不正确,请注意每组数据之间有两行空行');
-            }
-            data.children = new Array();
-            console.log(lines.length);
-            for (let i = 1; i < lines.length; i++) {
-                if (lines[i] === '') continue;
-                if (!isNaN(lines[i].slice(0, 4))) {
-                    var children = new Object();
-                    children.name = lines[i].split('：')[0];
-                    children.children = new Array();
-                    lines[i].split('：')[1].split('、').forEach(item => {
-                        var t = new Object();
-                        t.name = item;
-                        t.value = '暂无';
-                        children.children.push(t);
-                        map.set(item, t);
-                    })
-                    data.children.push(children);
-                } else {
-                    let [name, skill] = lines[i].split('：')
-                    if (!skill) {
-                        throw new Error('ERROR: 技能轨迹输入不正确');
-                    }
-                    if (!map.get(name)) {
-                        throw new Error("学生 " + name + "不存在")
-                    }
-                    map.get(name).value = skill;
-                }
-            }
-            // console.log(data);
-            const domText = '<div class="graph" style="width: 100%;height:350px;"></div>';
-            $(".graph-wrapper").append(domText);
-            let texs = jQuery.parseJSON(JSON.stringify(data));
-
+            
+            let texs = parse(treeText);
             console.log(texs);
             let graphlist = document.getElementsByClassName("graph");
             let graphDom = graphlist[graphlist.length - 1];
@@ -54,7 +19,7 @@ function analyse() {
             myChart.setOption(option = {
                 tooltip: {
                     trigger: 'item',
-                    triggerOn: 'mousemove',
+                    triggerOn: 'click',
                     formatter: (item) => {
                         return item.value;
                     }
@@ -111,6 +76,55 @@ function analyse() {
 
 }
 
+function parse(treeText){
+    let lines = treeText.split('\n');
+    let data = new Object();
+    let map = new Map();
+    data.name = lines[0];
+    if (lines[0].slice(0, 2) !== '导师') {
+        throw new Error('ERROR: 导师行不正确,请注意每组数据之间有两行空行');
+    }
+    data.children = new Array();
+    console.log(lines.length);
+    for (let i = 1; i < lines.length; i++) {
+        if (lines[i] === '') continue;
+        if (!isNaN(lines[i].slice(0, 4))) {
+            var children = new Object();
+            console.log(lines[i].search('级博士生|级硕士生|级本科生'))
+            if(lines[i].split('：').length <= 1 ||(lines[i].search('级博士生|级硕士生|级本科生'))==-1){
+                    throw new Error('ERROR: 学生信息解析不正确');
+            }
+            children.name = lines[i].split('：')[0];
+            children.children = new Array();
+            lines[i].split('：')[1].split('、').forEach(item => {
+
+                var t = new Object();
+                t.name = item;
+                t.value = '暂无';
+                children.children.push(t);
+                map.set(item, t);
+            })
+            data.children.push(children);
+        } else {
+            let [name, skill] = lines[i].split('：')
+            if (!skill) {
+                throw new Error('ERROR: 节点技能输入不正确');
+            }
+            if (!map.get(name)) {
+                throw new Error("学生 " + name + "不存在")
+            }
+            map.get(name).value = skill;
+        }
+        
+    }
+    // console.log(data);
+    const domText = '<div class="graph" style="width: 100%;height:350px;"></div>';
+    $(".graph-wrapper").append(domText);
+    let texs = jQuery.parseJSON(JSON.stringify(data));
+    return texs;
+}
+
+
 function fileUpload() {
     let file = document.getElementById('fileinp').files[0];
     let reader = new FileReader();
@@ -123,12 +137,14 @@ function fileUpload() {
     }
 }
 
+
 function clears() {
     $(".graph-wrapper").empty();
     $(".input-area").val('');
     $('#fileinp').val('');
 
 }
+
 
 function upload() {
     $('#fileinp').click();
